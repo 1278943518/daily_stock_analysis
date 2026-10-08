@@ -98,8 +98,24 @@ def run_market_review():
     return result.returncode
 
 
+def run_sector_dashboard():
+    """运行板块趋势仪表盘生成"""
+    print("\n📊 开始生成板块趋势仪表盘")
+    print("━" * 60)
+
+    env = os.environ.copy()
+    cmd = [
+        sys.executable, str(PROJECT_ROOT / "scripts" / "generate_sector_dashboard.py"),
+    ]
+    result = subprocess.run(cmd, cwd=str(PROJECT_ROOT), env=env, capture_output=False)
+    ok = result.returncode == 0
+    if ok:
+        print("✅ 板块趋势仪表盘生成完毕")
+    return ok
+
+
 def run_nightly():
-    """夜间自动模式：大盘复盘 + 最近分析的个股"""
+    """夜间自动模式：大盘复盘 + 最近分析的个股 + 板块趋势仪表盘"""
     print("=" * 60)
     print(f"🌙 夜间自动分析 — {datetime.now().strftime('%Y-%m-%d %H:%M')}")
     print("=" * 60)
@@ -116,11 +132,21 @@ def run_nightly():
         print("\n⚠️ 没有最近分析的股票记录，仅推送大盘")
         stocks_ok = True
 
-    if market_ok and stocks_ok:
-        print("\n✅ 夜间推送完成")
+    # 3. 板块趋势仪表盘
+    dashboard_ok = run_sector_dashboard()
+
+    if market_ok and stocks_ok and dashboard_ok:
+        print("\n✅ 夜间自动分析全部完成")
         return 0
     else:
-        print("\n⚠️ 部分分析失败，请检查日志")
+        failed = []
+        if not market_ok:
+            failed.append("大盘复盘")
+        if not stocks_ok:
+            failed.append("个股分析")
+        if not dashboard_ok:
+            failed.append("板块仪表盘")
+        print(f"\n⚠️ 部分分析失败: {', '.join(failed)}，请检查日志")
         return 1
 
 
