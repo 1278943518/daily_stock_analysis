@@ -85,3 +85,6 @@ static/
 /apps/dsa-desktop/dist/
 /apps/dsa-desktop/node_modules/
 docs/specs/
+
+# WorkBuddy 运行时数据（本地产物，禁止提交）
+.workbuddy/
